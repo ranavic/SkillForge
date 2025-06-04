@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Log In - SkillForge{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <img src="{% static 'img/logo.svg' %}" alt="SkillForge" height="50" class="mb-3">
+                        <h2 class="h4 mb-3">Welcome back</h2>
+                        <p class="text-muted">Sign in to continue to SkillForge</p>
+                    </div>
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Invalid username or password. Please try again.
+                        </div>
+                    {% endif %}
+
+                    {% if next %}
+                        {% if user.is_authenticated %}
+                            <div class="alert alert-warning" role="alert">
+                                Your account doesn't have access to this page. To proceed, please login with an account that has access.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info" role="alert">
+                                Please login to see this page.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <form method="post" action="{% url 'users:login' %}" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">Username or Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" name="username" id="id_username" 
+                                       class="form-control form-control-lg" 
+                                       placeholder="Enter your username or email" 
+                                       required 
+                                       autofocus>
+                                <div class="invalid-feedback">
+                                    Please enter your username or email.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <label for="id_password" class="form-label">Password</label>
+                                <a href="{% url 'users:password_reset' %}" class="text-decoration-none small">
+                                    Forgot password?
+                                </a>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" name="password" id="id_password" 
+                                       class="form-control form-control-lg" 
+                                       placeholder="Enter your password" 
+                                       required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button" 
+                                        data-bs-toggle="tooltip" 
+                                        data-bs-placement="top" 
+                                        title="Show password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <div class="invalid-feedback">
+                                    Please enter your password.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="remember" id="remember-me">
+                            <label class="form-check-label" for="remember-me">
+                                Remember me
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                        </button>
+
+                        {% if next %}
+                            <input type="hidden" name="next" value="{{ next }}">
+                        {% endif %}
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-0">Don't have an account? 
+                            <a href="{% url 'users:signup' %}" class="text-decoration-none fw-bold">
+                                Sign up
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enable form validation
+(function () {
+    'use strict'
+    
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function() {
+            const passwordInput = this.previousElementSibling;
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('bi-eye');
+            this.querySelector('i').classList.toggle('bi-eye-slash');
+        });
+    });
+})()
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Quizzes - SkillForge{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">All Quizzes</h1>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for quiz in quizzes %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ quiz.title }}</h5>
+                    <p class="card-text">{{ quiz.description|truncatewords:15 }}</p>
+                    <div class="mb-2">
+                        <span class="badge bg-info">{{ quiz.get_difficulty_display }}</span>
+                        {% if quiz.tags.all %}
+                            {% for tag in quiz.tags.all %}
+                                <span class="badge bg-secondary">{{ tag.name }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'quizzes:quiz_detail' quiz.id %}" class="btn btn-primary">View Quiz</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">No quizzes available yet.</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

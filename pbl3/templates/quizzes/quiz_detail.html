@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}{{ quiz.title }} - SkillForge{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>{{ quiz.title }}</h1>
+            <p class="text-muted">Difficulty: {{ quiz.get_difficulty_display }}</p>
+            <div class="mb-3">
+                <strong>Description:</strong>
+                <p>{{ quiz.description }}</p>
+            </div>
+            {% if quiz.instructions %}
+            <div class="mb-3">
+                <strong>Instructions:</strong>
+                <p>{{ quiz.instructions }}</p>
+            </div>
+            {% endif %}
+            <div class="mb-3">
+                <strong>Total Questions:</strong> {{ quiz.total_questions }}<br>
+                <strong>Passing Score:</strong> {{ quiz.passing_score }}%
+            </div>
+            <a href="{% url 'quizzes:start_quiz' quiz.id %}" class="btn btn-success">Start Quiz</a>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">Tags</div>
+                <div class="card-body">
+                    {% for tag in quiz.tags.all %}
+                        <span class="badge bg-secondary">{{ tag.name }}</span>
+                    {% empty %}
+                        <span class="text-muted">No tags</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Quiz Info</div>
+                <div class="card-body">
+                    <p><strong>Created:</strong> {{ quiz.created|date:"M d, Y" }}</p>
+                    <p><strong>Last Updated:</strong> {{ quiz.updated|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

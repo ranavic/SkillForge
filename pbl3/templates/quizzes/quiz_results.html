@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Quiz Results - SkillForge{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Quiz Results</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title">{{ attempt.quiz.title }}</h4>
+            <p class="card-text">Score: <strong>{{ attempt.score|floatformat:2 }}%</strong></p>
+            <p class="card-text">Correct: {{ attempt.correct_count }} / {{ attempt.quiz.total_questions }}</p>
+            {% if attempt.is_passed %}
+            <span class="badge bg-success">Passed</span>
+            {% else %}
+            <span class="badge bg-danger">Not Passed</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mb-4">
+        <h5>Question Breakdown</h5>
+        <ul class="list-group">
+            {% for response in attempt.answers.all %}
+            <li class="list-group-item">
+                <strong>Q{{ forloop.counter }}. {{ response.question.text }}</strong><br>
+                Your Answer:
+                {% if response.selected_answers.all %}
+                    {% for ans in response.selected_answers.all %}{{ ans.text }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                {% elif response.text_response %}
+                    {{ response.text_response }}
+                {% else %}
+                    <em>No answer</em>
+                {% endif %}
+                <br>
+                {% if response.is_correct %}
+                    <span class="text-success">Correct</span>
+                {% else %}
+                    <span class="text-danger">Incorrect</span>
+                {% endif %}
+                {% if response.question.explanation %}
+                <br><small class="text-muted">Explanation: {{ response.question.explanation }}</small>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <a href="{% url 'quizzes:quiz_list' %}" class="btn btn-outline-primary">Back to Quizzes</a>
+</div>
+{% endblock %}

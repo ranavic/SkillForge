@@ -1,0 +1,6 @@
+This is a test. Check check
+This is a 1st line of change.
+<<<<<<< HEAD
+This is a modification in GitHub App.
+=======
+>>>>>>> fdfe186 (2nd message of showing commits)

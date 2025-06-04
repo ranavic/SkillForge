@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - SkillForge{% endblock %}
+
+{% block content %}
+<div class="container py-5 animate-fade-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-3 text-center">
+                            {% if user.profile.profile_picture %}
+                                <img src="{{ user.profile.profile_picture.url }}" alt="Profile picture" class="rounded-circle mb-3" width="120" height="120" style="object-fit:cover;">
+                            {% else %}
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-3" style="width:120px;height:120px;">
+                                    <span class="fs-1 text-muted">{{ user.profile.initials }}</span>
+                                </div>
+                            {% endif %}
+                            <h4 class="mb-1">{{ user.get_full_name|default:user.username }}</h4>
+                            <p class="text-muted small">@{{ user.username }}</p>
+                        </div>
+                        <div class="col-md-9">
+                            <form method="post" enctype="multipart/form-data" class="row g-3">
+                                {% csrf_token %}
+                                {% if messages %}
+                                    {% for message in messages %}
+                                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                            {{ message }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                                {{ form.non_field_errors }}
+                                <div class="col-md-6">
+                                    <label for="id_first_name" class="form-label">First Name</label>
+                                    {{ form.first_name|as_widget:attrs }}
+                                    {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_last_name" class="form-label">Last Name</label>
+                                    {{ form.last_name|as_widget:attrs }}
+                                    {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="id_bio" class="form-label">Bio</label>
+                                    {{ form.bio|as_widget:attrs }}
+                                    {% if form.bio.errors %}<div class="invalid-feedback d-block">{{ form.bio.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_date_of_birth" class="form-label">Date of Birth</label>
+                                    {{ form.date_of_birth|as_widget:attrs }}
+                                    {% if form.date_of_birth.errors %}<div class="invalid-feedback d-block">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_phone_number" class="form-label">Phone Number</label>
+                                    {{ form.phone_number|as_widget:attrs }}
+                                    {% if form.phone_number.errors %}<div class="invalid-feedback d-block">{{ form.phone_number.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_address" class="form-label">Address</label>
+                                    {{ form.address|as_widget:attrs }}
+                                    {% if form.address.errors %}<div class="invalid-feedback d-block">{{ form.address.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_city" class="form-label">City</label>
+                                    {{ form.city|as_widget:attrs }}
+                                    {% if form.city.errors %}<div class="invalid-feedback d-block">{{ form.city.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_country" class="form-label">Country</label>
+                                    {{ form.country|as_widget:attrs }}
+                                    {% if form.country.errors %}<div class="invalid-feedback d-block">{{ form.country.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_postal_code" class="form-label">Postal Code</label>
+                                    {{ form.postal_code|as_widget:attrs }}
+                                    {% if form.postal_code.errors %}<div class="invalid-feedback d-block">{{ form.postal_code.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_website" class="form-label">Website</label>
+                                    {{ form.website|as_widget:attrs }}
+                                    {% if form.website.errors %}<div class="invalid-feedback d-block">{{ form.website.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_github" class="form-label">GitHub</label>
+                                    {{ form.github|as_widget:attrs }}
+                                    {% if form.github.errors %}<div class="invalid-feedback d-block">{{ form.github.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_linkedin" class="form-label">LinkedIn</label>
+                                    {{ form.linkedin|as_widget:attrs }}
+                                    {% if form.linkedin.errors %}<div class="invalid-feedback d-block">{{ form.linkedin.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_twitter" class="form-label">Twitter</label>
+                                    {{ form.twitter|as_widget:attrs }}
+                                    {% if form.twitter.errors %}<div class="invalid-feedback d-block">{{ form.twitter.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_profile_picture" class="form-label">Profile Picture</label>
+                                    {{ form.profile_picture|as_widget:attrs }}
+                                    {% if form.profile_picture.errors %}<div class="invalid-feedback d-block">{{ form.profile_picture.errors.0 }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_email_notifications" class="form-label">Email Notifications</label>
+                                    <div class="form-check form-switch">
+                                        {{ form.email_notifications|as_widget:attrs }}
+                                        <label class="form-check-label" for="id_email_notifications">Enable</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_dark_mode" class="form-label">Dark Mode</label>
+                                    <div class="form-check form-switch">
+                                        {{ form.dark_mode|as_widget:attrs }}
+                                        <label class="form-check-label" for="id_dark_mode">Enable</label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="text-muted mb-1">Username</h6>
+                                    <p class="mb-0">{{ user.username }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="text-muted mb-1">Email</h6>
+                                    <p class="mb-0">{{ user.email }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h6 class="text-muted mb-1">Date Joined</h6>
+                                    <p class="mb-0">{{ user.date_joined|date:"F j, Y" }}</p>
+                                </div>
+                                <div class="col-md-8">
+                                    <h6 class="text-muted mb-1">Bio</h6>
+                                    <p class="mb-0">
+                                        {% if user.profile.bio %}
+                                            {{ user.profile.bio }}
+                                        {% else %}
+                                            Add a bio to tell others about yourself.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h4 class="m-0">Learning Progress</h4>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <p class="mb-2">Overall Progress</p>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <p class="text-muted mt-3">Start your learning journey by enrolling in courses.</p>
+                            <div class="text-center mt-4">
+                                <a href="#" class="btn btn-primary">Explore Courses</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

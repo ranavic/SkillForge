@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }} - SkillForge{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>{{ course.title }}</h1>
+            <p class="text-muted">Instructor: {{ course.instructor.get_full_name|default:course.instructor.username }}</p>
+            {% if course.thumbnail %}
+            <img src="{{ course.thumbnail.url }}" class="img-fluid mb-3 rounded shadow-sm" alt="Course thumbnail">
+            {% endif %}
+            <div class="mb-3">
+                <strong>Overview:</strong>
+                <p>{{ course.overview }}</p>
+            </div>
+            <div class="mb-3">
+                <strong>Description:</strong>
+                <p>{{ course.description }}</p>
+            </div>
+            <div class="mb-3">
+                <strong>Learning Outcomes:</strong>
+                <p>{{ course.learning_outcomes }}</p>
+            </div>
+            {% if course.prerequisites %}
+            <div class="mb-3">
+                <strong>Prerequisites:</strong>
+                <p>{{ course.prerequisites }}</p>
+            </div>
+            {% endif %}
+            <div class="mb-3">
+                <strong>Category:</strong> {{ course.category }}<br>
+                <strong>Difficulty:</strong> {{ course.difficulty }}<br>
+                <strong>Language:</strong> {{ course.get_language_display }}<br>
+                <strong>Duration:</strong> {{ course.duration_hours }} hours
+            </div>
+            <div class="mb-3">
+                <strong>Price:</strong>
+                {% if course.is_free %}
+                    <span class="badge bg-success">Free</span>
+                {% else %}
+                    ₹{{ course.price }}
+                    {% if course.discount_price %}
+                        <span class="text-danger ms-2">Now: ₹{{ course.discount_price }}</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <a href="#" class="btn btn-primary">Enroll Now</a>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">Course Info</div>
+                <div class="card-body">
+                    <p><strong>Status:</strong> {{ course.get_status_display }}</p>
+                    <p><strong>Certificate:</strong> {% if course.certificate_available %}Yes{% else %}No{% endif %}</p>
+                    <p><strong>Created:</strong> {{ course.created|date:"M d, Y" }}</p>
+                    <p><strong>Last Updated:</strong> {{ course.updated|date:"M d, Y" }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Tags</div>
+                <div class="card-body">
+                    {% for tag in course.tags.all %}
+                        <span class="badge bg-secondary">{{ tag.name }}</span>
+                    {% empty %}
+                        <span class="text-muted">No tags</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
