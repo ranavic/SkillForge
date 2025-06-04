@@ -1,6 +1,8 @@
 from .settings import *
 import os
 
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
 DEBUG = False
 
 ALLOWED_HOSTS = [
