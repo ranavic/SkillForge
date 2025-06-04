@@ -12,15 +12,10 @@ ALLOWED_HOSTS = [
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'unsafe-secret-key')
 
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'skillforge'),
-        'USER': os.environ.get('POSTGRES_USER', 'skillforgeuser'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'changeme'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-    }
+    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 }
 
 STATIC_URL = '/static/'
