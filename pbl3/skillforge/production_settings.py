@@ -10,6 +10,11 @@ ALLOWED_HOSTS = [
     'www.yourdomain.com',
     'localhost',
     '127.0.0.1',
+    'skillforge-2vol.onrender.com',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://skillforge-2vol.onrender.com',
 ]
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'unsafe-secret-key')
