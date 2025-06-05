@@ -19,7 +19,7 @@
                     <h1 class="hero-title mb-4">Master New <span class="text-gradient">Skills</span> with AI-Driven Personalized Learning</h1>
                     <p class="hero-subtitle mb-4">SkillForge uses advanced AI to analyze your learning patterns and create a personalized experience that adapts to your unique style, pace, and goals.</p>
                     <div class="hero-cta d-flex flex-wrap gap-3 mb-5">
-                        <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg btn-icon btn-rounded animate-bounce-subtle">
+                        <a href="{% url 'users:signup' %}" class="btn btn-primary btn-lg btn-icon btn-rounded animate-bounce-subtle">
                             <i class="bi bi-rocket"></i> Get Started Free
                         </a>
                         <a href="#features" class="btn btn-outline-primary btn-lg btn-icon btn-rounded">
@@ -335,7 +335,7 @@
     <div class="container text-center py-4 animate-fade-in position-relative">
         <h2 class="fw-bold mb-3">Ready to Transform Your Learning Experience?</h2>
         <p class="lead mb-4">Join thousands of learners who have already enhanced their skills with SkillForge.</p>
-        <a href="{% url 'account_signup' %}" class="btn btn-light btn-lg px-5 pulse-animation">Get Started Today</a>
+        <a href="{% url 'users:signup' %}" class="btn btn-light btn-lg px-5 pulse-animation">Get Started Today</a>
     </div>
 </section>
 {% endblock %}

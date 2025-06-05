@@ -86,6 +86,15 @@ class AiTutorHomeView(TemplateView):
 class AiTutorChatView(LoginRequiredMixin, View):
     template_name = 'ai_tutor/chat.html'
     login_url = '/login/'
+
+    # Add a fallback for missing template
+    def get_template_names(self):
+        try:
+            from django.template.loader import get_template
+            get_template(self.template_name)
+            return [self.template_name]
+        except Exception:
+            return ['ai_tutor/chat_fallback.html']
     
     def get(self, request, *args, **kwargs):
         # Set up the basic context for the view

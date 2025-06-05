@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     # Our custom apps
     'users.apps.UsersConfig',
     'ai_tutor.apps.AiTutorConfig',  # AI Tutor app
+    'courses.apps.CoursesConfig',
+    'quizzes.apps.QuizzesConfig',
 ]
 
 MIDDLEWARE = [
@@ -130,6 +132,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+# Set the login URL for all login-required redirects
+LOGIN_URL = '/accounts/login/'
 
 # Media files
 MEDIA_URL = '/media/'

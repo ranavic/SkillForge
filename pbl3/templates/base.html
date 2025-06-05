@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,19 +110,19 @@
                 <div class="col-md-2">
                     <h5 class="mb-3">Platform</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="/courses/" class="text-decoration-none text-light-hover">Courses</a></li>
-                        <li class="mb-2"><a href="/ai-tutor/" class="text-decoration-none text-light-hover">AI Tutor</a></li>
-                        <li class="mb-2"><a href="/mentorship/" class="text-decoration-none text-light-hover">Mentorship</a></li>
-                        <li class="mb-2"><a href="/certificates/" class="text-decoration-none text-light-hover">Certificates</a></li>
+                        <li class="mb-2"><a href="{% url 'courses:course_list' %}" class="text-decoration-none text-light-hover">Courses</a></li>
+                        <li class="mb-2"><a href="{% url 'ai_tutor:chat' %}" class="text-decoration-none text-light-hover">AI Tutor</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-light-hover">Mentorship</a></li> <!-- TODO: Add mentorship URL -->
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-light-hover">Certificates</a></li> <!-- TODO: Add certificates URL -->
                     </ul>
                 </div>
                 <div class="col-md-2">
                     <h5 class="mb-3">Company</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="/about/" class="text-decoration-none text-light-hover">About Us</a></li>
-                        <li class="mb-2"><a href="/careers/" class="text-decoration-none text-light-hover">Careers</a></li>
-                        <li class="mb-2"><a href="/blog/" class="text-decoration-none text-light-hover">Blog</a></li>
-                        <li class="mb-2"><a href="/contact/" class="text-decoration-none text-light-hover">Contact</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-light-hover">About Us</a></li> <!-- TODO: Add about URL -->
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-light-hover">Careers</a></li> <!-- TODO: Add careers URL -->
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-light-hover">Blog</a></li> <!-- TODO: Add blog URL -->
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-light-hover">Contact</a></li> <!-- TODO: Add contact URL -->
                     </ul>
                 </div>
                 <div class="col-md-4">
@@ -141,8 +142,8 @@
                     <p class="small mb-md-0">&copy; 2025 SkillForge. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <a href="/privacy/" class="small text-decoration-none text-light-hover me-3">Privacy Policy</a>
-                    <a href="/terms/" class="small text-decoration-none text-light-hover">Terms of Service</a>
+                    <a href="#" class="small text-decoration-none text-light-hover me-3">Privacy Policy</a> <!-- TODO: Add privacy URL -->
+                    <a href="#" class="small text-decoration-none text-light-hover">Terms of Service</a> <!-- TODO: Add terms URL -->
                 </div>
             </div>
         </div>

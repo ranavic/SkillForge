@@ -5,6 +5,11 @@ from .models import Profile
 
 User = get_user_model()
 
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']
+
 class UserRegisterForm(UserCreationForm):
     """Form for user registration with email and basic info"""
     email = forms.EmailField(required=True)
@@ -42,19 +47,4 @@ class ProfileForm(forms.ModelForm):
             'github': forms.URLInput(attrs={'class': 'form-control'}),
             'linkedin': forms.URLInput(attrs={'class': 'form-control'}),
             'twitter': forms.URLInput(attrs={'class': 'form-control'}),
-        }
-    """Form for editing learning style preferences"""
-    
-    class Meta:
-        model = LearningStyle
-        fields = [
-            'visual_learner', 'auditory_learner', 'reading_learner', 'kinesthetic_learner',
-            'preferred_content_type', 'preferred_session_length', 'learning_pace',
-            'preferred_difficulty'
-        ]
-        widgets = {
-            'preferred_content_type': forms.Select(attrs={'class': 'form-control'}),
-            'preferred_session_length': forms.Select(attrs={'class': 'form-control'}),
-            'learning_pace': forms.Select(attrs={'class': 'form-control'}),
-            'preferred_difficulty': forms.Select(attrs={'class': 'form-control'}),
         }

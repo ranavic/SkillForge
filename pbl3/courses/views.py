@@ -7,8 +7,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib import messages
 
 from .models import (
-    Course, Category, Tag, Difficulty, Module, Lesson, CourseReview, Enrollment,
-    CourseProgress, LessonProgress, CourseWishlist
+    Course, Category, Tag, Difficulty, Module, Lesson, CourseReview, Enrollment, LessonProgress, CourseWishlist
 )
 
 class CourseListView(ListView):
@@ -18,7 +17,7 @@ class CourseListView(ListView):
     paginate_by = 12
     
     def get_queryset(self):
-        queryset = Course.objects.filter(is_published=True)
+        queryset = Course.objects.filter(status='published')
         
         # Apply filters if provided
         query = self.request.GET.get('q')
@@ -42,7 +41,7 @@ class CourseListView(ListView):
         if difficulty:
             queryset = queryset.filter(difficulty__slug=difficulty)
             
-        return queryset.distinct().order_by('-created_at')
+        return queryset.distinct().order_by('-created')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -60,7 +59,7 @@ class CourseListByCategoryView(ListView):
     
     def get_queryset(self):
         self.category = get_object_or_404(Category, slug=self.kwargs['category_slug'])
-        return Course.objects.filter(category=self.category, is_published=True)
+        return Course.objects.filter(category=self.category, status='published')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -79,7 +78,7 @@ class CourseListByTagView(ListView):
     
     def get_queryset(self):
         self.tag = get_object_or_404(Tag, slug=self.kwargs['tag_slug'])
-        return Course.objects.filter(tags=self.tag, is_published=True)
+        return Course.objects.filter(tags=self.tag, status='published')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -98,7 +97,7 @@ class CourseListByDifficultyView(ListView):
     
     def get_queryset(self):
         self.difficulty = get_object_or_404(Difficulty, slug=self.kwargs['difficulty_slug'])
-        return Course.objects.filter(difficulty=self.difficulty, is_published=True)
+        return Course.objects.filter(difficulty=self.difficulty, status='published')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -123,7 +122,7 @@ class CourseDetailView(DetailView):
         context['modules'] = Module.objects.filter(course=course).order_by('order')
         
         # Get course reviews
-        context['reviews'] = CourseReview.objects.filter(course=course).order_by('-created_at')
+        context['reviews'] = CourseReview.objects.filter(course=course).order_by('-created')
         context['avg_rating'] = context['reviews'].aggregate(Avg('rating'))['rating__avg'] or 0
         
         # Check if user is enrolled
@@ -143,13 +142,14 @@ class CourseDetailView(DetailView):
             # Get user's course progress if enrolled
             if context['is_enrolled']:
                 try:
-                    context['course_progress'] = CourseProgress.objects.get(
-                        enrollment__course=course,
-                        enrollment__user=self.request.user
-                    )
-                except CourseProgress.DoesNotExist:
+                    context['course_progress'] = Enrollment.objects.get(
+                        course=course,
+                        student=self.request.user
+                    ).courseprogress
+                except Enrollment.DoesNotExist:
                     context['course_progress'] = None
-        
+
+
         # Get related courses
         context['related_courses'] = Course.objects.filter(
             Q(category=course.category) | Q(tags__in=course.tags.all())
@@ -170,18 +170,13 @@ class CourseEnrollView(LoginRequiredMixin, View):
         )
         
         if not created and not enrollment.is_active:
-            # Reactivate enrollment if it exists but is inactive
             enrollment.is_active = True
             enrollment.save()
             messages.success(request, f"Welcome back to '{course.title}'! Your enrollment has been reactivated.")
         elif created:
-            # Create initial course progress
-            CourseProgress.objects.create(enrollment=enrollment)
             messages.success(request, f"You have successfully enrolled in '{course.title}'.")
         else:
             messages.info(request, f"You are already enrolled in '{course.title}'.")
-        
-        return HttpResponseRedirect(reverse('courses:course_detail', kwargs={'course_slug': course_slug}))
 
 
 class CourseUnenrollView(LoginRequiredMixin, View):
@@ -321,13 +316,13 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
                 is_active=True
             )
             
-            course_progress, created = CourseProgress.objects.get_or_create(enrollment=enrollment)
-            
+            # No CourseProgress model, so just use enrollment
             lesson_progress, created = LessonProgress.objects.get_or_create(
-                lesson=self.object,
-                course_progress=course_progress,
-                defaults={'is_completed': False}
+                lesson=self.object,       # self.object presumably is a Lesson instance
+                enrollment=enrollment,    # Use enrollment, not course_progress
+                defaults={'completed': False}  # field name is 'completed' not 'is_completed'
             )
+
             
             context['lesson_progress'] = lesson_progress
         
@@ -453,7 +448,7 @@ class CourseReviewListView(ListView):
     
     def get_queryset(self):
         self.course = get_object_or_404(Course, slug=self.kwargs['course_slug'])
-        return CourseReview.objects.filter(course=self.course).order_by('-created_at')
+        return CourseReview.objects.filter(course=self.course).order_by('-created')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -683,7 +678,7 @@ class RecommendedCoursesView(LoginRequiredMixin, ListView):
         # Get recommended courses based on categories and tags
         recommended = Course.objects.filter(
             Q(category__in=categories) | Q(tags__in=tags),
-            is_published=True
+            status='published'
         ).exclude(
             id__in=enrolled_courses.values_list('id', flat=True)
         ).distinct()
@@ -692,7 +687,7 @@ class RecommendedCoursesView(LoginRequiredMixin, ListView):
         # show popular courses based on enrollment count
         if not recommended.exists():
             recommended = Course.objects.filter(
-                is_published=True
+                status='published'
             ).exclude(
                 id__in=enrolled_courses.values_list('id', flat=True)
             ).annotate(

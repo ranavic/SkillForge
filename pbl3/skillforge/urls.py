@@ -9,6 +9,8 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.views.generic import RedirectView
+
 urlpatterns = [
     # Admin site
     path('admin/', admin.site.urls),
@@ -30,6 +32,9 @@ urlpatterns = [
     
     # Quizzes
     path('quizzes/', include('quizzes.urls', namespace='quizzes')),
+
+    # Convenience redirect for /login/ to /accounts/login/
+    path('login/', RedirectView.as_view(url='/accounts/login/', permanent=False)),
 ]
 
 # Serve media files in development

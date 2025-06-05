@@ -8,7 +8,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from .forms import UserRegisterForm, ProfileForm
+from .forms import UserRegisterForm, ProfileForm, UserUpdateForm
 from .models import Profile
 from django.contrib.auth.models import User
 
@@ -17,18 +17,21 @@ class ProfileView(View):
     @method_decorator(login_required)
     def get(self, request):
         profile = get_object_or_404(Profile, user=request.user)
+        user_form = UserUpdateForm(instance=request.user)
         form = ProfileForm(instance=profile)
-        return render(request, 'users/profile.html', {'form': form, 'profile': profile})
+        return render(request, 'users/profile.html', {'user_form': user_form, 'form': form, 'profile': profile})
     
     @method_decorator(login_required)
     def post(self, request):
         profile = get_object_or_404(Profile, user=request.user)
+        user_form = UserUpdateForm(request.POST, instance=request.user)
         form = ProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
+        if user_form.is_valid() and form.is_valid():
+            user_form.save()
             form.save()
             messages.success(request, 'Your profile was successfully updated!')
-            return redirect('users_profile')
-        return render(request, 'users/profile.html', {'form': form, 'profile': profile})
+            return redirect('users:profile')
+        return render(request, 'users/profile.html', {'user_form': user_form, 'form': form, 'profile': profile})
 
 @login_required
 def change_password(request):
@@ -38,7 +41,7 @@ def change_password(request):
             user = form.save()
             update_session_auth_hash(request, user)
             messages.success(request, 'Your password was successfully updated!')
-            return redirect('users_profile')
+            return redirect('users:profile')
         else:
             messages.error(request, 'Please correct the error below.')
     else:
@@ -82,19 +85,27 @@ def signup_view(request):
     """Handle new user registration."""
     if request.user.is_authenticated:
         return redirect('dashboard')
-        
+
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Create user profile
-            Profile.objects.create(user=user)
+            # Create user profile if not exists
+            Profile.objects.get_or_create(user=user)
             # Log the user in
             login(request, user)
             messages.success(request, f'Account created for {user.username}!')
             return redirect('dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = UserRegisterForm()
+    
+    # Ensure all expected fields are present in the form
+    expected_fields = ['first_name', 'last_name', 'email', 'username', 'password1', 'password2']
+    for field in expected_fields:
+        if field not in form.fields:
+            form.fields[field] = ''
     
     return render(request, 'users/signup.html', {'form': form})
 

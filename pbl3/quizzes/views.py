@@ -8,8 +8,7 @@ from django.db.models import Avg, Count, Q, Sum, Max
 
 from courses.models import Course, Module
 from .models import (
-    Quiz, Question, Answer, QuizAttempt, QuestionResponse,
-    QuestionFeedback, PracticeSession, QuizTopic
+    Quiz, Question, Answer, QuizAttempt, QuestionResponse
 )
 
 class QuizListView(ListView):
@@ -19,7 +18,7 @@ class QuizListView(ListView):
     paginate_by = 10
     
     def get_queryset(self):
-        queryset = Quiz.objects.filter(is_active=True)
+        queryset = Quiz.objects.all()
         
         # Filter by search query if provided
         query = self.request.GET.get('q')
@@ -28,11 +27,6 @@ class QuizListView(ListView):
                 Q(title__icontains=query) | 
                 Q(description__icontains=query)
             )
-            
-        # Filter by topic if provided
-        topic = self.request.GET.get('topic')
-        if topic:
-            queryset = queryset.filter(topics__slug=topic)
             
         # Filter by difficulty if provided
         difficulty = self.request.GET.get('difficulty')
@@ -43,11 +37,10 @@ class QuizListView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['topics'] = QuizTopic.objects.all()
         
         # If user is authenticated, get their quiz stats
         if self.request.user.is_authenticated:
-            user_attempts = QuizAttempt.objects.filter(user=self.request.user)
+            user_attempts = QuizAttempt.objects.filter(student=self.request.user)
             context['total_attempts'] = user_attempts.count()
             context['completed_quizzes'] = user_attempts.values('quiz').distinct().count()
             
@@ -81,8 +74,8 @@ class QuizDetailView(DetailView):
         if self.request.user.is_authenticated:
             context['previous_attempts'] = QuizAttempt.objects.filter(
                 quiz=quiz,
-                user=self.request.user
-            ).order_by('-created_at')
+                student=self.request.user
+            ).order_by('-created')
             
             # Check if user has passed the quiz
             context['has_passed'] = context['previous_attempts'].filter(
@@ -121,8 +114,7 @@ class CourseQuizzesView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         self.course = get_object_or_404(Course, slug=self.kwargs['course_slug'])
         return Quiz.objects.filter(
-            Q(course=self.course) | Q(module__course=self.course),
-            is_active=True
+            Q(course=self.course) | Q(module__course=self.course)
         ).distinct()
     
     def get_context_data(self, **kwargs):
@@ -157,7 +149,7 @@ class ModuleQuizzesView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         self.module = get_object_or_404(Module, id=self.kwargs['module_id'])
-        return Quiz.objects.filter(module=self.module, is_active=True)
+        return Quiz.objects.filter(module=self.module)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -193,7 +185,7 @@ class StartQuizView(LoginRequiredMixin, View):
         
         # Check if there are time constraints or other requirements
         if quiz.requires_enrollment and quiz.course:
-            if not quiz.course.enrollment_set.filter(user=request.user, is_active=True).exists():
+            if not quiz.course.enrollment_set.filter(user=request.user, status='active').exists():
                 messages.error(request, "You must be enrolled in the course to take this quiz.")
                 return HttpResponseRedirect(reverse('quizzes:quiz_detail', kwargs={'quiz_id': quiz_id}))
         
@@ -237,7 +229,7 @@ class QuizAttemptView(LoginRequiredMixin, DetailView):
     pk_url_kwarg = 'attempt_id'
     
     def get_queryset(self):
-        return QuizAttempt.objects.filter(user=self.request.user)
+        return QuizAttempt.objects.filter(student=self.request.user)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -428,7 +420,7 @@ class QuizResultsView(LoginRequiredMixin, DetailView):
     pk_url_kwarg = 'attempt_id'
     
     def get_queryset(self):
-        return QuizAttempt.objects.filter(user=self.request.user)
+        return QuizAttempt.objects.filter(student=self.request.user)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -452,8 +444,8 @@ class QuizResultsView(LoginRequiredMixin, DetailView):
         # Get user's previous attempts
         context['previous_attempts'] = QuizAttempt.objects.filter(
             quiz=attempt.quiz,
-            user=self.request.user
-        ).exclude(id=attempt.id).order_by('-created_at')
+            student=self.request.user
+        ).exclude(id=attempt.id).order_by('-created')
         
         # Determine if this is the best score
         if context['previous_attempts'].exists():
@@ -473,9 +465,9 @@ class UserQuizHistoryView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         return QuizAttempt.objects.filter(
-            user=self.request.user,
+            student=self.request.user,
             is_completed=True
-        ).order_by('-created_at')
+        ).order_by('-created')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -506,7 +498,7 @@ class UserQuizStatsView(LoginRequiredMixin, TemplateView):
         
         # Get all completed attempts
         attempts = QuizAttempt.objects.filter(
-            user=self.request.user,
+            student=self.request.user,
             is_completed=True
         )
         
@@ -522,15 +514,6 @@ class UserQuizStatsView(LoginRequiredMixin, TemplateView):
             context['avg_score'] = 0
             context['avg_time'] = 0
             
-        # Get quiz performance by topic
-        quiz_topics = QuizTopic.objects.filter(
-            quiz__quizattempt__user=self.request.user,
-            quiz__quizattempt__is_completed=True
-        ).distinct()
-        
-        topic_stats = []
-        
-        for topic in quiz_topics:
             topic_attempts = attempts.filter(quiz__topics=topic)
             topic_data = {
                 'topic': topic,
@@ -543,195 +526,13 @@ class UserQuizStatsView(LoginRequiredMixin, TemplateView):
         context['topic_stats'] = topic_stats
         
         # Get recent improvement data for progress charts
-        recent_attempts = attempts.order_by('-created_at')[:10]
+        recent_attempts = attempts.order_by('-created')[:10]
         context['recent_attempts'] = recent_attempts
         
         return context
 
 
-class QuestionFeedbackView(LoginRequiredMixin, CreateView):
-    model = QuestionFeedback
-    template_name = 'quizzes/question_feedback.html'
-    fields = ['feedback_type', 'comment']
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['question'] = get_object_or_404(Question, id=self.kwargs['question_id'])
-        return context
-    
-    def form_valid(self, form):
-        form.instance.question = get_object_or_404(Question, id=self.kwargs['question_id'])
-        form.instance.user = self.request.user
-        
-        messages.success(self.request, "Thank you for your feedback! It helps us improve our quizzes.")
-        return super().form_valid(form)
-    
-    def get_success_url(self):
-        # Redirect back to the quiz results or the quiz itself
-        referer = self.request.META.get('HTTP_REFERER')
-        if referer:
-            return referer
-        return reverse('quizzes:quiz_list')
 
 
-class PracticeQuizView(LoginRequiredMixin, View):
-    def get(self, request, topic_slug):
-        topic = get_object_or_404(QuizTopic, slug=topic_slug)
-        
-        # Create a new practice session
-        session = PracticeSession.objects.create(
-            user=request.user,
-            topic=topic,
-            is_completed=False
-        )
-        
-        # Get questions for the topic
-        questions = Question.objects.filter(
-            quiz__topics=topic,
-            quiz__is_active=True
-        ).order_by('?')
-        
-        # Limit to 10 questions for practice
-        practice_questions = questions[:10]
-        
-        # Associate questions with this practice session
-        for question in practice_questions:
-            session.questions.add(question)
-        
-        # Redirect to the practice session
-        return HttpResponseRedirect(reverse('quizzes:practice_session', kwargs={
-            'topic_slug': topic_slug,
-            'session_id': session.id
-        }))
 
 
-class PracticeSessionView(LoginRequiredMixin, DetailView):
-    model = PracticeSession
-    template_name = 'quizzes/practice_session.html'
-    context_object_name = 'session'
-    pk_url_kwarg = 'session_id'
-    
-    def get_queryset(self):
-        return PracticeSession.objects.filter(user=self.request.user)
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        session = self.get_object()
-        context['topic'] = session.topic
-        context['questions'] = session.questions.all()
-        
-        return context
-    
-    def post(self, request, topic_slug, session_id):
-        session = self.get_object()
-        
-        # Process responses for each question
-        correct_count = 0
-        total_questions = session.questions.count()
-        
-        question_results = []
-        
-        for question in session.questions.all():
-            result = {
-                'question': question,
-                'is_correct': False,
-                'user_answer': None,
-                'correct_answers': question.answer_set.filter(is_correct=True)
-            }
-            
-            # Get user's answer based on question type
-            if question.question_type == 'MCQ':
-                answer_key = f'question_{question.id}'
-                if answer_key in request.POST:
-                    try:
-                        selected_answer = Answer.objects.get(
-                            id=int(request.POST[answer_key]),
-                            question=question
-                        )
-                        result['user_answer'] = selected_answer
-                        result['is_correct'] = selected_answer.is_correct
-                    except (Answer.DoesNotExist, ValueError):
-                        pass
-            elif question.question_type == 'MULTI':
-                answer_key = f'question_{question.id}'
-                selected_ids = request.POST.getlist(answer_key)
-                if selected_ids:
-                    selected_answers = Answer.objects.filter(id__in=selected_ids, question=question)
-                    result['user_answer'] = selected_answers
-                    
-                    correct_answers = question.answer_set.filter(is_correct=True).count()
-                    selected_correct = selected_answers.filter(is_correct=True).count()
-                    selected_incorrect = selected_answers.filter(is_correct=False).count()
-                    
-                    result['is_correct'] = (selected_correct == correct_answers and selected_incorrect == 0)
-            elif question.question_type == 'TEXT':
-                answer_key = f'question_{question.id}'
-                if answer_key in request.POST:
-                    user_text = request.POST[answer_key].strip()
-                    result['user_answer'] = user_text
-                    
-                    correct_answers = [a.text.lower().strip() for a in question.answer_set.filter(is_correct=True)]
-                    result['is_correct'] = user_text.lower() in correct_answers
-            
-            if result['is_correct']:
-                correct_count += 1
-                
-            question_results.append(result)
-        
-        # Calculate score
-        if total_questions > 0:
-            score = (correct_count / total_questions) * 100
-        else:
-            score = 0
-            
-        # Update session
-        session.is_completed = True
-        session.score = score
-        session.save()
-        
-        # Store results for display
-        request.session['practice_results'] = {
-            'session_id': session.id,
-            'score': score,
-            'correct_count': correct_count,
-            'total_questions': total_questions
-        }
-        
-        # Redirect to results page
-        return HttpResponseRedirect(reverse('quizzes:practice_results', kwargs={
-            'topic_slug': topic_slug
-        }))
-
-
-class PracticeResultsView(LoginRequiredMixin, TemplateView):
-    template_name = 'quizzes/practice_results.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['topic'] = get_object_or_404(QuizTopic, slug=self.kwargs['topic_slug'])
-        
-        # Get results from session
-        results = self.request.session.get('practice_results', {})
-        context.update(results)
-        
-        if 'session_id' in results:
-            try:
-                practice_session = PracticeSession.objects.get(
-                    id=results['session_id'],
-                    user=self.request.user
-                )
-                context['session'] = practice_session
-                context['questions'] = practice_session.questions.all()
-            except PracticeSession.DoesNotExist:
-                pass
-        
-        # Get user's practice history for this topic
-        context['previous_sessions'] = PracticeSession.objects.filter(
-            user=self.request.user,
-            topic=context['topic'],
-            is_completed=True
-        ).exclude(
-            id=results.get('session_id')
-        ).order_by('-created_at')
-        
-        return context

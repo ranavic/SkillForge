@@ -20,9 +20,6 @@ urlpatterns = [
     path('my-quiz-stats/', views.UserQuizStatsView.as_view(), name='my_quiz_stats'),
     
     # Question feedback
-    path('question/<int:question_id>/feedback/', views.QuestionFeedbackView.as_view(), name='question_feedback'),
     
     # Practice mode
-    path('practice/<slug:topic_slug>/', views.PracticeQuizView.as_view(), name='practice_quiz'),
-    path('practice/<slug:topic_slug>/results/', views.PracticeResultsView.as_view(), name='practice_results'),
 ]

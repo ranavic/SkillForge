@@ -282,3 +282,17 @@ class CourseResource(models.Model):
     def is_external(self):
         """Check if this is an external resource."""
         return bool(self.url) and not bool(self.file)
+
+
+class CourseWishlist(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='course_wishlist')
+    course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name='wishlisted_by')
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'course')
+        verbose_name = 'Course Wishlist'
+        verbose_name_plural = 'Course Wishlists'
+
+    def __str__(self):
+        return f"{self.user} wishes {self.course}"
